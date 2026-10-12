@@ -1,0 +1,59 @@
+Phần 1: Thiết kế kiến trúc
+Script được chia thành 4 khối chính:
+1. Header block: Ghi tên script, tác giả và ngày tạo bằng dấu #.
+2. Biến cấu hình: Khai báo đường dẫn file log và file báo cáo bằng các biến bắt đầu bằng $.
+3. Thông báo tiến trình: Sử dụng Write-Host để thông báo trạng thái thực hiện trên Terminal.
+4. Logic xử lý: Tạo tiêu đề báo cáo, đọc file log bằng Get-Content, lọc lỗi 404 bằng Select-String và ghi kết quả vào file báo cáo bằng Add-Content.
+Phần 2: Sản phẩm — auto_report.ps1
+
+# ==========================================
+# Ten script: auto_report.ps1
+# Tac gia: Sinh vien
+# Ngay tao: 12/10/2026
+# Chuc nang: Tu dong loc loi 404 tu file log
+# ==========================================
+
+# 1. Khai bao bien cau hinh
+$duong_dan_log = ".\server.log"
+$duong_dan_bao_cao = ".\report.txt"
+
+# 2. Thong bao bat dau
+Write-Host "Dang kiem tra file log..." -ForegroundColor Yellow
+
+# 3. Kiem tra file log co ton tai hay khong
+if (Test-Path $duong_dan_log) {
+
+    # Tao tieu de moi cho bao cao
+    $tieu_de = "=== HE THONG TU DONG LOC LOG ==="
+    Add-Content -Path $duong_dan_bao_cao -Value $tieu_de -Encoding utf8
+
+    # 4. Doc log, loc loi 404 va ghi noi vao bao cao
+    Get-Content $duong_dan_log |
+        Select-String "404" |
+        ForEach-Object {
+            Add-Content -Path $duong_dan_bao_cao -Value $_.Line -Encoding utf8
+        }
+
+    # Thong bao hoan thanh
+    Write-Host "Da loc log va luu vao report.txt" -ForegroundColor Green
+
+}
+else {
+    Write-Host "Khong tim thay file server.log!" -ForegroundColor Red
+}
+
+
+
+Giải thích cách hoạt động
+- Test-Path: Kiểm tra file server.log có tồn tại hay không.
+- Write-Host: Hiển thị thông báo trên Terminal, không ghi thông báo đó vào file báo cáo.
+- Add-Content: Ghi nối tiếp nội dung vào report.txt, giữ lại dữ liệu báo cáo cũ.
+- Select-String "404": Lọc các dòng có chứa chuỗi 404.
+- $_ .Line: Lấy nội dung dòng log tìm được để ghi vào báo cáo.
+Lưu ý: Script trên ghi thêm tiêu đề và kết quả vào cuối report.txt mỗi lần chạy. Nếu muốn tạo báo cáo mới hoàn toàn mỗi ngày, cần đổi bước tạo tiêu đề sang ghi đè bằng Set-Content. Thời gian thực hiện 0,5 giây chỉ là mục tiêu, vì tốc độ thực tế còn phụ thuộc dung lượng file log và cấu hình máy tính.
+Cách chạy script
+Lưu mã nguồn với tên auto_report.ps1, đặt cùng thư mục với server.log, sau đó mở PowerShell tại thư mục đó và chạy:
+.\auto_report.ps1
+
+
+Nếu PowerShell chặn việc chạy script do Execution Policy, hãy kiểm tra chính sách thực thi trước khi thay đổi cài đặt.
